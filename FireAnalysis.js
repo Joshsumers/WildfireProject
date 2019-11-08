@@ -6,26 +6,38 @@
 var imagery = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR');
 
 //set Fire Boundary
-var Fire = ee.FeatureCollection('users/joshsumers1996/FullBound') ;
+var Fire = ee.FeatureCollection('users/joshsumers1996/fay');
+
+//Set Fire Year
+var Year = 1990
+
+//Export Images?
+var IEXPORT = false;
+
+//Map Indicies?
+var MapNDVI = false;
+var MapEVI = true;
+var MapNBR = false;
 
 //Determine Base Data
-var BYEARs = ee.Date('04/01/1990'); //Set Fire Year
-var BYEARe = ee.Date('04/30/1990'); //Set Fire Year
+var BYEARs = ee.Date(Year+'-04-01');
+var BYEARe = ee.Date(Year+'-04-30');
 //First Analysis Year (year after fire)
-var Year1s = ee.Date('04/01/1991'); //
-var Year1e = ee.Date('04/30/1991');
+var Year1s = ee.Date(Year+1+'-04-01');
+var Year1e = ee.Date(Year+1+'-04-30');
 //Second Analysis Year (five years after fire)
-var Year5s = ee.Date('04/01/1995');
-var Year5e = ee.Date('04/30/1995');
+var Year5s = ee.Date(Year+5+'-04-01');
+var Year5e = ee.Date(Year+5+'-04-30');
 //Third Analysis Year (10 years after fire)
-var Year10s = ee.Date('04/01/2000');
-var Year10e = ee.Date('04/30/2000');
+var Year10s = ee.Date(Year+10+'-04-01');
+var Year10e = ee.Date(Year+10+'-04-30');
 //Fourth Analysis Year (15 years after fire)
-var Year15s = ee.Date('04/01/2005');
-var Year15e = ee.Date('04/30/2005');
+var Year15s = ee.Date(Year+15+'-04-01');
+var Year15e = ee.Date(Year+15+'-04-30');
 //Fifth Analysis Year (20 Years after fire)
-var Year20s = ee.Date('04/01/2010');
-var Year20e = ee.Date('04/30/2010');
+var Year20s = ee.Date(Year+20+'-04-01');
+var Year20e = ee.Date(Year+20+'-04-30');
+
 //Acquire Base Imagery
 var BImage = imagery.filterDate(BYEARs,BYEARe)
   .filterDate(BYEARs,BYEARe)
@@ -58,20 +70,24 @@ var Image20= imagery
   .map(function(image){return image.clip(Fire)});
 //Calculate NDVI Function
 var CalcNDVI = function(image){
-  var Ndvi = (('B4'-'B3')/('B4'+'B3'));
-  var INDVI = image.addBands('Ndvi');
+  var Ndvi = image.normalizedDifference(['B4','B3']).rename('NDVI');
+  var INDVI = image.addBands(Ndvi);
   return INDVI;
 //Calculate EVI Function
 }
 var CalcEVI = function(image){
-  var Evi = 2.5 * (('B4' - 'B3') / ('B4' + 6 * 'B3' - 7.5 * 'B1' + 1));
-  var IEVI = image.addBands('Evi');
+  var Evi = image.expression('2.5 * ((NIR-Red)/(NIR + 6 * Red - 7 * Blue +1 ))', {
+  'NIR' : image.select('B4'),
+  'Red':image.select('B3'),
+  'Blue':image.select('B1')
+  }).rename('EVI');
+  var IEVI = image.addBands(Evi);
   return IEVI ;
 }
 //Calculate NBR Function
 var CalcNBR = function(image){
-  var Nbr = (('B4'-'B5')/('B4'+'B5'));
-  var INBR = image.addBands('Nbr');
+  var Nbr = image.normalizedDifference(['B4','B5']).rename('NBR');
+  var INBR = image.addBands(Nbr);
   return INBR ;
 }
 //calculate base indicies
@@ -99,20 +115,215 @@ var My20NDVI = Image20.map(CalcNDVI).mean().select('NDVI');
 var My20EVI = Image20.map(CalcEVI).mean().select('EVI');
 var My20NBR = Image20.map(CalcNBR).mean().select('NBR');
 //calculate difference in NDVI between Base data and following analysis years
-var Y1NDVID = My1NDVI.subtract(MbNDVI).select('NDVId');
-var Y5NDVID = My5NDVI.subtract(MbNDVI).select('NDVId');
-var Y10NDVID = My10NDVI.subtract(MbNDVI).select('NDVId');
-var Y15NDVID = My15NDVI.subtract(MbNDVI).select('NDVId');
-var Y20NDVID = My20NDVI.subtract(MbNDVI).select('NDVId');
+var Y1NDVID = My1NDVI.subtract(MbNDVI);
+var Y5NDVID = My5NDVI.subtract(MbNDVI);
+var Y10NDVID = My10NDVI.subtract(MbNDVI);
+var Y15NDVID = My15NDVI.subtract(MbNDVI);
+var Y20NDVID = My20NDVI.subtract(MbNDVI);
 //calculate difference in EVI between Base data and following analyis years
-var Y1EVID = My1EVI.subtract(MbEVI).select('EVId');
-var Y5EVID = My5EVI.subtract(MbEVI).select('EVId');
-var Y10EVID = My10EVI.subtract(MbEVI).select('EVId');
-var Y15EVID = My15EVI.subtract(MbEVI).select('EVId');
-var Y20EVID = My20EVI.subtract(MbEVI).select('EVId');
+var Y1EVID = My1EVI.subtract(MbEVI);
+var Y5EVID = My5EVI.subtract(MbEVI);
+var Y10EVID = My10EVI.subtract(MbEVI);
+var Y15EVID = My15EVI.subtract(MbEVI);
+var Y20EVID = My20EVI.subtract(MbEVI);
 //calculate difference in NBR between Base data and following analysis Years
-var Y1NBRD = My1NBR.subtract(MbNBR).select('NBRd');
-var Y5NBRD = My5NBR.subtract(MbNBR).select('NBRd');
-var Y10NBRD = My10NBR.subtract(MbNBR).select('NBRd');
-var Y15NBRD = My15NBR.subtract(MbNBR).select('NBRd');
-var Y20NBRD = My20NBR.subtract(MbNBR).select('NBRd');
+var Y1NBRD = My1NBR.subtract(MbNBR);
+var Y5NBRD = My5NBR.subtract(MbNBR);
+var Y10NBRD = My10NBR.subtract(MbNBR);
+var Y15NBRD = My15NBR.subtract(MbNBR);
+var Y20NBRD = My20NBR.subtract(MbNBR);
+
+//Set Visual Parameters
+var VisNdvi = {Bands:'NDVI', min: -2, max: 2};
+var VisEVI = {Bands:'EVI', min: -2, max: 2};
+var VisNBR = {Bands:'NBR', min: -0.5, max: 1.3};
+
+//Map NDVI
+if (MapNDVI === true){
+  Map.addLayer(Y1NDVID, VisNdvi, 'NDVI D Y1');
+  Map.addLayer(Y5NDVID, VisNdvi, 'NDVI D Y5');
+  Map.addLayer(Y10NDVID, VisNdvi, 'NDVI D Y10');
+  Map.addLayer(Y15NDVID, VisNdvi, 'NDVI D Y15');
+  Map.addLayer(Y20NDVID, VisNdvi, 'NDVI D Y20');
+}
+
+//Map EVI
+if (MapEVI === true){
+  Map.addLayer(Y1EVID, VisEVI, 'EVI D Y1');
+  Map.addLayer(Y5EVID, VisEVI, 'EVI D Y5');
+  Map.addLayer(Y10EVID, VisEVI, 'EVI D Y10');
+  Map.addLayer(Y15EVID, VisEVI, 'EVI D Y15');
+  Map.addLayer(Y20EVID, VisEVI, 'EVI D Y20');
+}
+
+//Map NBR
+if (MapNBR === true){
+Map.addLayer(Y1NBRD, VisNBR, 'NBR D Y1');
+Map.addLayer(Y5NBRD, VisNBR, 'NBR D Y5');
+Map.addLayer(Y10NBRD, VisNBR, 'NBR D Y10');
+Map.addLayer(Y15NBRD, VisNBR, 'NBR D Y15');
+Map.addLayer(Y20NBRD, VisNBR, 'NBR D Y20');
+}
+
+Map.centerObject(Fire, 11);
+
+
+if (IEXPORT === true){
+  Export.image.toDrive({
+    image: Y1NDVID,
+    description: 'Year 1 NDVI Difference',
+    maxPixels: 1e13,
+    crs: 'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}
+if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y5NDVID,
+    description:'Year 5 NDVI Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y10NDVID,
+    description:'Year 10 NDVI Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}
+if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y15NDVID,
+    description:'Year 15 NDVI Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y20NDVID,
+    description:'Year 20 NDVI Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}
+if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y1EVID,
+    description:'Year 1 EVI Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}
+if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y5EVID,
+    description:'Year 5 EVI Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y10EVID,
+    description:'Year 10 EVI Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}
+if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y15EVID,
+    description:'Year 15 EVI Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y20EVID,
+    description:'Year 20 EVI Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}
+if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y1NDVID,
+    description:'Year 1 NBR Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}
+if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y5NBRD,
+    description:'Year 5 NBR Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y10NBRD,
+    description:'Year 10 NBR Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}
+if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y15NBRD,
+    description:'Year 15 NBR Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}if (IEXPORT === true){
+  Export.image.toDrive({
+    image:Y20NBRD,
+    description:'Year 20 NBR Difference',
+    maxPixels: 1e13,
+    crs:'EPSG:102004',
+    scale: 10,
+    region: fire,
+    fileformat: 'GeoTIFF'
+  })
+}
