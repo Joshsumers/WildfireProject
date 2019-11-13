@@ -4,15 +4,16 @@
 
 //Set Imagery
 var imagery = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR');
+var L7imagery = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR');
 
 //set Fire Boundary
-var Fire = ee.FeatureCollection('');
+var Fire = ee.FeatureCollection('users/joshsumers1996/WildfireShapes/Bear_Trap');
 
 //what is Fire name? This will be used in File name
-var FireName = ''; //Avoid Spaces
+var FireName = 'Bear_Trap'; //Avoid Spaces
 
 //Set Fire Year
-var Year = 1990;
+var Year = 1995;
 
 //Export Images? Set This Parameter
 var EXPORTNDVI = true; // Export NDVI
@@ -69,7 +70,7 @@ var Image15= imagery
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
 //Acquire Year 20 Imagery
-var Image20= imagery
+var Image20= L7imagery
   .filter(ee.Filter.date(Year20s,Year20e))
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
