@@ -9,7 +9,7 @@ var imagery = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR');
 var Fire = ee.FeatureCollection('');
 
 //what is Fire name? This will be used in File name
-var FireName = "Wil"; //Avoid Spaces
+var FireName = ''; //Avoid Spaces
 
 //Set Fire Year
 var Year = 1990;
