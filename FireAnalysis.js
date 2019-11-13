@@ -1,40 +1,45 @@
-////////////////Wildfire Analysis////////////////
+////////////////WildFire Analysis////////////////
 ////////////////By Joshua Sumers/////////////////
-////////////////Edited:11/5/2019/////////////////
+////////////////Edited:11/12/2019/////////////////
 
 //Set Imagery
 var imagery = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR');
 
 //set Fire Boundary
-var Fire = ee.FeatureCollection('users/joshsumers1996/fay');
+var Fire = ee.FeatureCollection('');
+
+//what is Fire name? This will be used in File name
+var FireName = "Wil"; //Avoid Spaces
 
 //Set Fire Year
-var Year = 1990
+var Year = 1990;
 
-//Export Images?
-var IEXPORT = false;
+//Export Images? Set This Parameter
+var EXPORTNDVI = true; // Export NDVI
+var EVIEXPORT = false; //Export EVI
+var NBREXPORT = false; //Export NBR
 
 //Map Indicies?
-var MapNDVI = false;
-var MapEVI = true;
-var MapNBR = false;
+var MapNDVI = false; //Map NDVI
+var MapEVI = true; //Map EVI
+var MapNBR = false; //Map NBR
 
 //Determine Base Data
 var BYEARs = ee.Date(Year+'-04-01');
 var BYEARe = ee.Date(Year+'-04-30');
-//First Analysis Year (year after fire)
+//First Analysis Year (year after Fire)
 var Year1s = ee.Date(Year+1+'-04-01');
 var Year1e = ee.Date(Year+1+'-04-30');
-//Second Analysis Year (five years after fire)
+//Second Analysis Year (five years after Fire)
 var Year5s = ee.Date(Year+5+'-04-01');
 var Year5e = ee.Date(Year+5+'-04-30');
-//Third Analysis Year (10 years after fire)
+//Third Analysis Year (10 years after Fire)
 var Year10s = ee.Date(Year+10+'-04-01');
 var Year10e = ee.Date(Year+10+'-04-30');
-//Fourth Analysis Year (15 years after fire)
+//Fourth Analysis Year (15 years after Fire)
 var Year15s = ee.Date(Year+15+'-04-01');
 var Year15e = ee.Date(Year+15+'-04-30');
-//Fifth Analysis Year (20 Years after fire)
+//Fifth Analysis Year (20 Years after Fire)
 var Year20s = ee.Date(Year+20+'-04-01');
 var Year20e = ee.Date(Year+20+'-04-30');
 
@@ -167,163 +172,162 @@ Map.addLayer(Y20NBRD, VisNBR, 'NBR D Y20');
 
 Map.centerObject(Fire, 11);
 
-
-if (IEXPORT === true){
+//Export NDVI
+if (EXPORTNDVI === true){
   Export.image.toDrive({
     image: Y1NDVID,
-    description: 'Year 1 NDVI Difference',
+    description: FireName+'_'+'Y1_NDVID',
     maxPixels: 1e13,
     crs: 'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}
-if (IEXPORT === true){
   Export.image.toDrive({
     image:Y5NDVID,
-    description:'Year 5 NDVI Difference',
+    description:FireName+'_'+'Y5_NDVID',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}if (IEXPORT === true){
   Export.image.toDrive({
     image:Y10NDVID,
-    description:'Year 10 NDVI Difference',
+    description:FireName+'_'+'Y10_NDVID',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}
-if (IEXPORT === true){
   Export.image.toDrive({
     image:Y15NDVID,
-    description:'Year 15 NDVI Difference',
+    description:FireName+'_'+'Y15_NDVID',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}if (IEXPORT === true){
   Export.image.toDrive({
     image:Y20NDVID,
-    description:'Year 20 NDVI Difference',
+    description:FireName+'_'+'Y20_NDVID',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
 }
-if (IEXPORT === true){
+//Export EVI
+if (EVIEXPORT === true){
   Export.image.toDrive({
     image:Y1EVID,
-    description:'Year 1 EVI Difference',
+    description:FireName+'_'+'Y1_EVID',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}
-if (IEXPORT === true){
   Export.image.toDrive({
     image:Y5EVID,
-    description:'Year 5 EVI Difference',
+    description:FireName+'_'+'Y5_EVID',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}if (IEXPORT === true){
   Export.image.toDrive({
     image:Y10EVID,
-    description:'Year 10 EVI Difference',
+    description:FireName+'_'+'Y10_EVID',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}
-if (IEXPORT === true){
   Export.image.toDrive({
     image:Y15EVID,
-    description:'Year 15 EVI Difference',
+    description:FireName+'_'+'Y15_EVID',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}if (IEXPORT === true){
   Export.image.toDrive({
     image:Y20EVID,
-    description:'Year 20 EVI Difference',
+    description:FireName+'_'+'Y20_EVID',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
 }
-if (IEXPORT === true){
+//Export NBR
+if (NBREXPORT === true){
   Export.image.toDrive({
-    image:Y1NDVID,
-    description:'Year 1 NBR Difference',
+    image:Y1NBRD,
+    description:FireName+'_'+'Y1_NBRD',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}
-if (IEXPORT === true){
   Export.image.toDrive({
     image:Y5NBRD,
-    description:'Year 5 NBR Difference',
+    description:FireName+'_'+'Y5_NBRD',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}if (IEXPORT === true){
   Export.image.toDrive({
     image:Y10NBRD,
-    description:'Year 10 NBR Difference',
+    description:FireName+'_'+'Y10_NBRD',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}
-if (IEXPORT === true){
   Export.image.toDrive({
     image:Y15NBRD,
-    description:'Year 15 NBR Difference',
+    description:FireName+'_'+'Y15_NBRD',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
-}if (IEXPORT === true){
   Export.image.toDrive({
     image:Y20NBRD,
-    description:'Year 20 NBR Difference',
+    description:FireName+'_'+'Y20_NBRD',
     maxPixels: 1e13,
     crs:'EPSG:102004',
     scale: 10,
-    region: fire,
-    fileformat: 'GeoTIFF'
+    region: Fire,
+    folder: 'FireAnalysis',
+    fileFormat: 'GeoTIFF',
   })
 }
