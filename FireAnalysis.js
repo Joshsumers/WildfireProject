@@ -3,7 +3,7 @@
 ////////////////Edited:11/12/2019/////////////////
 
 //Set Imagery
-var imagery = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR');
+var L5imagery = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR');
 var L7imagery = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR');
 
 //set Fire Boundary
@@ -45,27 +45,27 @@ var Year20s = ee.Date(Year+20+'-04-01');
 var Year20e = ee.Date(Year+20+'-04-30');
 
 //Acquire Base Imagery
-var BImage = imagery.filterDate(BYEARs,BYEARe)
+var BImage = L5imagery.filterDate(BYEARs,BYEARe)
   .filterDate(BYEARs,BYEARe)
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
 //Acquire Year 1 Imagery
-var Image1= imagery
+var Image1= L5imagery
   .filter(ee.Filter.date(Year1s,Year1e))
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
 //Acquire Year 5 Imagery
-var Image5= imagery
+var Image5= L5imagery
   .filter(ee.Filter.date(Year5s,Year5e))
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
 //Acquire Year 10 Imagery
-var Image10= imagery
+var Image10= L5imagery
   .filter(ee.Filter.date(Year10s,Year10e))
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
 //Acquire Year 15 Imagery
-var Image15= imagery
+var Image15= L7imagery
   .filter(ee.Filter.date(Year15s,Year15e))
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
