@@ -1,29 +1,29 @@
 ////////////////WildFire Analysis////////////////
 ////////////////By Joshua Sumers/////////////////
-////////////////Edited:11/15/2019/////////////////
+////////////////Edited:11/12/2019/////////////////
 
 //Set Imagery
 var L5imagery = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR');
 var L8imagery = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR');
 
 //set Fire Boundary
-var Fire = ee.FeatureCollection('users/joshsumers1996/WildfireShapes/Bear_Trap');
+var Fire = ee.FeatureCollection('users/joshsumers1996/WildfireShapes/Oak');
 
 //what is Fire name? This will be used in File name
-var FireName = 'Bear_Trap'; //Avoid Spaces
+var FireName = 'Oak'; //Avoid Spaces
 
 //Set Fire Year
-var Year = 1995;
+var Year = 1998;
 
 //Export Images? Set This Parameter
-var EXPORTNDVI = false; // Export NDVI
+var EXPORTNDVI = true; // Export NDVI
 var EVIEXPORT = true; //Export EVI
-var NBREXPORT = false; //Export NBR
+var NBREXPORT = true; //Export NBR
 
 //Map Indicies?
 var MapNDVI = false; //Map NDVI
 var MapEVI = false; //Map EVI
-var MapNBR = false; //Map NBR
+var MapNBR = true; //Map NBR
 
 //Determine Base Data
 var BYEARs = ee.Date(Year+'-04-01');
@@ -45,14 +45,14 @@ var Year20s = ee.Date(Year+20+'-04-01');
 var Year20e = ee.Date(Year+20+'-04-30');
 
 //Confirm Imagery being used
-if (Year+15 > 2013) {
+if (Year+15 >= 2013) {
   print('Year 15 is greater than 2013, using Landsat8 Data');
 }
 else
 {
   print('Year 15 is not greater than 2013, using Landsat5 Data');
 }
-if (Year+20 > 2013) {
+if (Year+20 >= 2013) {
   print('Year 20 is greater than 2013, using Landsat8 Data');
 }
 else
@@ -80,7 +80,7 @@ var Image10= L5imagery
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
 //Acquire Year 15 Imagery
-if (Year+15 > 2013) {
+if (Year+15 >= 2013) {
 var Image15= L8imagery
   .filter(ee.Filter.date(Year15s,Year15e))
   .filterBounds(Fire)
@@ -93,7 +93,7 @@ var Image15= L5imagery
   .map(function(image){return image.clip(Fire)});
 }
 //Acquire Year 20 Imagery
-if (Year+20 > 2013){
+if (Year+20 >= 2013){
 var Image20= L8imagery
   .filter(ee.Filter.date(Year20s,Year20e))
   .filterBounds(Fire)
@@ -167,7 +167,7 @@ var My10NDVI = Image10.map(CalcNDVI).mean().select('NDVI');
 var My10EVI = Image10.map(CalcEVI).mean().select('EVI');
 var My10NBR = Image10.map(CalcNBR).mean().select('NBR');
 //calculate year 15 indicies
-if (Year+15 > 2013) {
+if (Year+15 >= 2013) {
 var My15NDVI = Image15.map(CalcNDVIL8).mean().select('NDVI');
 var My15EVI = Image15.map(CalcEVIL8).mean().select('EVI');
 var My15NBR = Image15.map(CalcNBRL8).mean().select('NBR');
@@ -178,7 +178,7 @@ var My15EVI = Image15.map(CalcEVI).mean().select('EVI');
 var My15NBR = Image15.map(CalcNBR).mean().select('NBR');
 }
 //calculate year 20 indicies
-if (Year+20 > 2013) {
+if (Year+20 >= 2013) {
 var My20NDVI = Image20.map(CalcNDVIL8).mean().select('NDVI');
 var My20EVI = Image20.map(CalcEVIL8).mean().select('EVI');
 var My20NBR = Image20.map(CalcNBRL8).mean().select('NBR');
