@@ -1,10 +1,10 @@
 ////////////////WildFire Analysis////////////////
 ////////////////By Joshua Sumers/////////////////
-////////////////Edited:11/12/2019/////////////////
+////////////////Edited:11/15/2019/////////////////
 
 //Set Imagery
 var L5imagery = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR');
-var L7imagery = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR');
+var L8imagery = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR');
 
 //set Fire Boundary
 var Fire = ee.FeatureCollection('users/joshsumers1996/WildfireShapes/Bear_Trap');
@@ -16,13 +16,13 @@ var FireName = 'Bear_Trap'; //Avoid Spaces
 var Year = 1995;
 
 //Export Images? Set This Parameter
-var EXPORTNDVI = true; // Export NDVI
-var EVIEXPORT = false; //Export EVI
+var EXPORTNDVI = false; // Export NDVI
+var EVIEXPORT = true; //Export EVI
 var NBREXPORT = false; //Export NBR
 
 //Map Indicies?
 var MapNDVI = false; //Map NDVI
-var MapEVI = true; //Map EVI
+var MapEVI = false; //Map EVI
 var MapNBR = false; //Map NBR
 
 //Determine Base Data
@@ -44,6 +44,21 @@ var Year15e = ee.Date(Year+15+'-04-30');
 var Year20s = ee.Date(Year+20+'-04-01');
 var Year20e = ee.Date(Year+20+'-04-30');
 
+//Confirm Imagery being used
+if (Year+15 > 2013) {
+  print('Year 15 is greater than 2013, using Landsat8 Data');
+}
+else
+{
+  print('Year 15 is not greater than 2013, using Landsat5 Data');
+}
+if (Year+20 > 2013) {
+  print('Year 20 is greater than 2013, using Landsat8 Data');
+}
+else
+{
+  print('Year 20 is not greater than 2013, using Landsat5 Data');
+}
 //Acquire Base Imagery
 var BImage = L5imagery.filterDate(BYEARs,BYEARe)
   .filterDate(BYEARs,BYEARe)
@@ -65,37 +80,76 @@ var Image10= L5imagery
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
 //Acquire Year 15 Imagery
-var Image15= L7imagery
+if (Year+15 > 2013) {
+var Image15= L8imagery
   .filter(ee.Filter.date(Year15s,Year15e))
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
+}
+else {
+var Image15= L5imagery
+  .filter(ee.Filter.date(Year15s,Year15e))
+  .filterBounds(Fire)
+  .map(function(image){return image.clip(Fire)});
+}
 //Acquire Year 20 Imagery
-var Image20= L7imagery
+if (Year+20 > 2013){
+var Image20= L8imagery
   .filter(ee.Filter.date(Year20s,Year20e))
   .filterBounds(Fire)
   .map(function(image){return image.clip(Fire)});
-//Calculate NDVI Function
+}
+else {
+  var Image20= L5imagery
+  .filter(ee.Filter.date(Year20s,Year20e))
+  .filterBounds(Fire)
+  .map(function(image){return image.clip(Fire)});
+}
+//Calculate NDVI Function for Landsat 5
 var CalcNDVI = function(image){
   var Ndvi = image.normalizedDifference(['B4','B3']).rename('NDVI');
   var INDVI = image.addBands(Ndvi);
   return INDVI;
-//Calculate EVI Function
 }
+//Calculate NDVI Function for Landsat 8
+var CalcNDVIL8 = function(image){
+  var Ndvi = image.normalizedDifference(['B5','B4']).rename('NDVI');
+  var INDVIL8 = image.addBands(Ndvi);
+  return INDVIL8;
+}
+//Calculate EVI for Landsat 5
 var CalcEVI = function(image){
-  var Evi = image.expression('2.5 * ((NIR-Red)/(NIR + 6 * Red - 7 * Blue +1 ))', {
-  'NIR' : image.select('B4'),
-  'Red':image.select('B3'),
-  'Blue':image.select('B1')
+  var Evi = image.expression('2.5 * ((NIR - Red) / (NIR + 6 * Red - 7.5 * Blue + 1 ))', {
+  'NIR' : image.select('B4').multiply(0.0001),
+  'Red':image.select('B3').multiply(0.0001),
+  'Blue':image.select('B1').multiply(0.0001)
   }).rename('EVI');
   var IEVI = image.addBands(Evi);
   return IEVI ;
 }
-//Calculate NBR Function
+//Calculate EVI for Landsat 8
+var CalcEVIL8 = function(image){
+  var Evi = image.expression('2.5 * ((NIR - Red) / (NIR + 6 * Red - 7.5 * Blue + 1 ))', {
+  'NIR' : image.select('B5').multiply(0.0001),
+  'Red':image.select('B4').multiply(0.0001),
+  'Blue':image.select('B2').multiply(0.0001)
+  }).rename('EVI');
+  var IEVIL8 = image.addBands(Evi);
+  return IEVIL8 ;
+}
+//Calculate NBR Function for Landsat 5
 var CalcNBR = function(image){
-  var Nbr = image.normalizedDifference(['B4','B5']).rename('NBR');
+  var Nbr = image.normalizedDifference(['B4','B7']).rename('NBR');
   var INBR = image.addBands(Nbr);
   return INBR ;
 }
+//Calculate NBR Function for Landsat 8
+var CalcNBRL8 = function(image){
+  var Nbr = image.normalizedDifference(['B5','B7']).rename('NBR');
+  var INBRL8 = image.addBands(Nbr);
+  return INBRL8 ;
+}
+
 //calculate base indicies
 var MbNDVI = BImage.map(CalcNDVI).mean().select('NDVI');
 var MbEVI = BImage.map(CalcEVI).mean().select('EVI');
@@ -113,13 +167,27 @@ var My10NDVI = Image10.map(CalcNDVI).mean().select('NDVI');
 var My10EVI = Image10.map(CalcEVI).mean().select('EVI');
 var My10NBR = Image10.map(CalcNBR).mean().select('NBR');
 //calculate year 15 indicies
+if (Year+15 > 2013) {
+var My15NDVI = Image15.map(CalcNDVIL8).mean().select('NDVI');
+var My15EVI = Image15.map(CalcEVIL8).mean().select('EVI');
+var My15NBR = Image15.map(CalcNBRL8).mean().select('NBR');
+}
+else {
 var My15NDVI = Image15.map(CalcNDVI).mean().select('NDVI');
 var My15EVI = Image15.map(CalcEVI).mean().select('EVI');
 var My15NBR = Image15.map(CalcNBR).mean().select('NBR');
+}
 //calculate year 20 indicies
+if (Year+20 > 2013) {
+var My20NDVI = Image20.map(CalcNDVIL8).mean().select('NDVI');
+var My20EVI = Image20.map(CalcEVIL8).mean().select('EVI');
+var My20NBR = Image20.map(CalcNBRL8).mean().select('NBR');
+}
+else {
 var My20NDVI = Image20.map(CalcNDVI).mean().select('NDVI');
 var My20EVI = Image20.map(CalcEVI).mean().select('EVI');
 var My20NBR = Image20.map(CalcNBR).mean().select('NBR');
+}
 //calculate difference in NDVI between Base data and following analysis years
 var Y1NDVID = My1NDVI.subtract(MbNDVI);
 var Y5NDVID = My5NDVI.subtract(MbNDVI);
@@ -179,7 +247,6 @@ if (EXPORTNDVI === true){
     image: Y1NDVID,
     description: FireName+'_'+'Y1_NDVID',
     maxPixels: 1e13,
-    crs: 'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -189,7 +256,6 @@ if (EXPORTNDVI === true){
     image:Y5NDVID,
     description:FireName+'_'+'Y5_NDVID',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -199,7 +265,6 @@ if (EXPORTNDVI === true){
     image:Y10NDVID,
     description:FireName+'_'+'Y10_NDVID',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -209,7 +274,6 @@ if (EXPORTNDVI === true){
     image:Y15NDVID,
     description:FireName+'_'+'Y15_NDVID',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -219,7 +283,6 @@ if (EXPORTNDVI === true){
     image:Y20NDVID,
     description:FireName+'_'+'Y20_NDVID',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -232,7 +295,6 @@ if (EVIEXPORT === true){
     image:Y1EVID,
     description:FireName+'_'+'Y1_EVID',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -242,7 +304,6 @@ if (EVIEXPORT === true){
     image:Y5EVID,
     description:FireName+'_'+'Y5_EVID',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -252,7 +313,6 @@ if (EVIEXPORT === true){
     image:Y10EVID,
     description:FireName+'_'+'Y10_EVID',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -262,7 +322,6 @@ if (EVIEXPORT === true){
     image:Y15EVID,
     description:FireName+'_'+'Y15_EVID',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -272,7 +331,6 @@ if (EVIEXPORT === true){
     image:Y20EVID,
     description:FireName+'_'+'Y20_EVID',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -285,7 +343,6 @@ if (NBREXPORT === true){
     image:Y1NBRD,
     description:FireName+'_'+'Y1_NBRD',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -295,7 +352,6 @@ if (NBREXPORT === true){
     image:Y5NBRD,
     description:FireName+'_'+'Y5_NBRD',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -305,7 +361,6 @@ if (NBREXPORT === true){
     image:Y10NBRD,
     description:FireName+'_'+'Y10_NBRD',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -315,7 +370,6 @@ if (NBREXPORT === true){
     image:Y15NBRD,
     description:FireName+'_'+'Y15_NBRD',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
@@ -325,7 +379,6 @@ if (NBREXPORT === true){
     image:Y20NBRD,
     description:FireName+'_'+'Y20_NBRD',
     maxPixels: 1e13,
-    crs:'EPSG:102004',
     scale: 10,
     region: Fire,
     folder: 'FireAnalysis',
